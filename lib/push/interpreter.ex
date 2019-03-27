@@ -1,6 +1,6 @@
 
 defmodule Interpreter do
-  defstruct fstack: [], cstack: [], instructions: %{}
+  defstruct fstack: [], estack: [], instructions: %{}
 
   def build do
     %Interpreter{}
@@ -19,13 +19,13 @@ defmodule Interpreter do
   end
 
   def step(i, limit) do
-    case i.cstack do
+    case i.estack do
       [] -> i
       [instruction | rest] ->
-        i = %{i | cstack:  rest}
+        i = %{i | estack: rest}
 
         i = cond do
-          is_list(instruction) -> Enum.reduce(Enum.reverse(instruction), i, fn a, i -> %{i | cstack: [a | i.cstack]} end)
+          is_list(instruction) -> Enum.reduce(Enum.reverse(instruction), i, fn a, i -> %{i | estack: [a | i.estack]} end)
           is_number(instruction) -> Instructions.fconst(i, instruction)
           i.instructions[instruction] -> i.instructions[instruction].(i)
         end
@@ -35,17 +35,40 @@ defmodule Interpreter do
   end
 
   def execute(i, program) when is_list(program) do
-    step(%{i | cstack: [ program | i.cstack ]}, 100)
+    step(%{i | estack: [ program | i.estack ]}, 100)
   end
 
   def execute(i, program) when is_bitstring(program) do
-    p = Enum.map(String.split(program, " ", trim: true), fn t ->
-      case Float.parse(t) do
-        {n, ""} -> n
-        _ -> t
-      end
+    execute(i, parse(program))
+  end
+
+  def parse(program) when is_bitstring(program) do
+    tokenize(program)
+      |> parse
+  end
+
+  def parse(tokens) when is_list(tokens) do
+    # Reduce with an list-of-lists accumulator representing the current
+    # stack of nested token lists.  On open-paren, push a new empty list
+    # to the accumulator.  On close-paren, pop the top of the accumulator
+    # stack and push it onto the next list down.
+
+    [result | _] = Enum.reduce(tokens, [[]], fn (token, [ h | t ]) ->
+        case token do
+          "(" -> [ [] | [ h | t ] ]
+          ")" -> [ second | t ] = t; [ second ++ [h] | t ]
+          _ ->
+            case Float.parse(token) do
+              {n, _} -> [ h ++ [n] | t ]
+              :error -> [ h ++ [token] | t ]
+            end
+        end
     end)
 
-    execute(i, p)
+    result
+  end
+
+  defp tokenize(program) do
+    List.flatten(Regex.scan(~r/(?:[\)\(]|[^\s\(\)]+)/, program))
   end
 end

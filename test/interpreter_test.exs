@@ -17,7 +17,7 @@ defmodule InterpreterTest do
 
   test "runs string programs" do
     p = Interpreter.build()
-      |> Interpreter.execute("10 20 30 float.*")
+      |> Interpreter.execute("10 (20) 30 float.*")
 
     assert p.fstack == [600, 10]
   end
