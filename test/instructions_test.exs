@@ -54,12 +54,22 @@ defmodule InstructionsTest do
     assert p.fstack == [0.5]
   end
 
-  test "it protected divides numbers" do
+  test "it pops numbers" do
     p = %Interpreter{}
       |> Instructions.fconst(10)
-      |> Instructions.fconst(0)
-      |> Instructions.fdiv()
+      |> Instructions.fconst(20)
+      |> Instructions.fpop()
 
-    assert p.fstack == [0.0]
+    assert p.fstack == [10.0]
   end
+
+  test "it dups numbers" do
+    p = %Interpreter{}
+    |> Instructions.fconst(10)
+    |> Instructions.fconst(20)
+    |> Instructions.fdup()
+
+    assert p.fstack == [20.0, 20.0, 10.0]
+  end
+
 end

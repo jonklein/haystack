@@ -8,6 +8,13 @@ defmodule InterpreterTest do
     assert p.fstack == []
   end
 
+
+  test "parses string programs" do
+    p = Interpreter.parse("((()))")
+
+    assert p == [[[[]]]]
+  end
+
   test "runs list programs" do
     p = Interpreter.build()
       |> Interpreter.execute([10, [ 20 ], 30, "float.*"])
@@ -17,7 +24,7 @@ defmodule InterpreterTest do
 
   test "runs string programs" do
     p = Interpreter.build()
-      |> Interpreter.execute("10 (20) 30 float.*")
+      |> Interpreter.execute("(10 (20) 30) float.*")
 
     assert p.fstack == [600, 10]
   end

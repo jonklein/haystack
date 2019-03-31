@@ -8,6 +8,9 @@ defmodule Interpreter do
       |> register_instruction("float.+", &Instructions.fadd/1)
       |> register_instruction("float./", &Instructions.fdiv/1)
       |> register_instruction("float.-", &Instructions.fsub/1)
+      |> register_instruction("float.dup", &Instructions.fdup/1)
+      |> register_instruction("float.pop", &Instructions.fpop/1)
+      |> register_instruction("float.noop", &Instructions.fnoop/1)
   end
 
   def register_instruction(i, name, inst) do
@@ -53,7 +56,7 @@ defmodule Interpreter do
     # to the accumulator.  On close-paren, pop the top of the accumulator
     # stack and push it onto the next list down.
 
-    [result | _] = Enum.reduce(tokens, [[]], fn (token, [ h | t ]) ->
+    hd(Enum.reduce(tokens, [[]], fn (token, [ h | t ]) ->
         case token do
           "(" -> [ [] | [ h | t ] ]
           ")" -> [ second | t ] = t; [ second ++ [h] | t ]
@@ -63,9 +66,7 @@ defmodule Interpreter do
               :error -> [ h ++ [token] | t ]
             end
         end
-    end)
-
-    result
+    end))
   end
 
   defp tokenize(program) do
