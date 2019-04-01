@@ -9,26 +9,16 @@ defmodule GP do
     mutationProbability: 0.1,
     solutionThreshold: 0.2,
     individualSize: 20,
-    populationSize: 1000
-
+    populationSize: 1000,
+    generationLimit: 100
 
   def configure(gp, []) do
     gp
   end
 
-  def configure(gp, [{:individualSize, value} | t]) do
-    IO.inspect("Individual size: #{value}")
-    configure(%{gp | individualSize: value}, t)
-  end
-
-  def configure(gp, [{:populationSize, value} | t]) do
-    IO.inspect("Population size: #{value}")
-    configure(%{gp | populationSize: value}, t)
-  end
-
-  def configure(gp, [{:tournamentSize, value} | t]) do
-    IO.inspect("Tournament size: #{value}")
-    configure(%{gp | tournamentSize: value}, t)
+  def configure(gp, [{key, value} | t]) do
+    IO.puts("Configuring #{key}: #{value}")
+    configure(Map.replace!(gp, key, value), t)
   end
 
   def build(cases, options \\ []) do
