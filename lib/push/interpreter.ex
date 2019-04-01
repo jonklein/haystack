@@ -1,6 +1,6 @@
 
 defmodule Interpreter do
-  defstruct fstack: [], estack: [], instructions: %{}
+  defstruct fstack: [], estack: [], finput: 0.0, instructions: %{}
 
   def build do
     %Interpreter{}
@@ -11,6 +11,7 @@ defmodule Interpreter do
       |> register_instruction("float.dup", &Instructions.fdup/1)
       |> register_instruction("float.pop", &Instructions.fpop/1)
       |> register_instruction("float.noop", &Instructions.fnoop/1)
+      |> register_instruction("float.input", &Instructions.finput/1)
   end
 
   def register_instruction(i, name, inst) do

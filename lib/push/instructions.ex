@@ -50,8 +50,13 @@ defmodule Instructions do
     end
   end
 
+  def finput(p) do
+    %{p | fstack: [p.finput | p.fstack]}
+  end
+
   @spec fconst(Push, float) :: Push
   def fconst(p, f) do
     %{p | fstack: [f/1.0 | p.fstack]}
   end
+
 end

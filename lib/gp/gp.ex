@@ -3,16 +3,41 @@ defmodule GP do
     interpreter: %{},
     cases: [],
     generation: 0,
-    tournamentSize: 5,
+    tournamentSize: 15,
     mutationRate: 0.40,
     crossoverRate: 0.55,
     mutationProbability: 0.1,
-    solutionThreshold: 0.2
+    solutionThreshold: 0.2,
+    individualSize: 20,
+    populationSize: 1000
 
-  def build(populationSize, cases) do
+
+  def configure(gp, []) do
+    gp
+  end
+
+  def configure(gp, [{:individualSize, value} | t]) do
+    IO.inspect("Individual size: #{value}")
+    configure(%{gp | individualSize: value}, t)
+  end
+
+  def configure(gp, [{:populationSize, value} | t]) do
+    IO.inspect("Population size: #{value}")
+    configure(%{gp | populationSize: value}, t)
+  end
+
+  def configure(gp, [{:tournamentSize, value} | t]) do
+    IO.inspect("Tournament size: #{value}")
+    configure(%{gp | tournamentSize: value}, t)
+  end
+
+  def build(cases, options \\ []) do
     IO.inspect(cases)
-    interpreter = Interpreter.build()
-    %GP{interpreter: interpreter, cases: cases, population: Enum.map(1..populationSize, fn _ -> Individual.build(interpreter, 50) end)}
+    build_population(configure(%GP{interpreter: Interpreter.build(), cases: cases}, options))
+  end
+
+  def build_population(gp) do
+    %{gp | population: Enum.map(1..gp.populationSize, fn _ -> Individual.build(gp.interpreter, gp.individualSize) end)}
   end
 
   def evaluate(gp) do
@@ -21,7 +46,7 @@ defmodule GP do
 
   def evaluate(gp, individual) do
     fitness = Enum.reduce(gp.cases, 0, fn ([input, output], acc) ->
-      i = Interpreter.execute(%{gp.interpreter | fstack: [input]}, individual.code)
+      i = Interpreter.execute(%{gp.interpreter | fstack: [], estack: [], finput: input}, individual.code)
 
       result = case i.fstack do
         [ h | _ ] -> h

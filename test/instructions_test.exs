@@ -72,4 +72,12 @@ defmodule InstructionsTest do
     assert p.fstack == [20.0, 20.0, 10.0]
   end
 
+  test "it pushes inputs" do
+    p = %Interpreter{finput: 22}
+    |> Instructions.finput()
+    |> Instructions.fdup()
+
+    assert p.fstack == [22.0, 22.0]
+  end
+
 end

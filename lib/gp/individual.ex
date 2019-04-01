@@ -2,7 +2,8 @@ defmodule Individual do
   defstruct code: [], fitness: 0.0
 
   def build(interpreter, size) do
-    %Individual{code: Generator.build(interpreter, size), fitness: 0}
+     %Individual{code: Generator.build(interpreter, size), fitness: 0}
+    #%Individual{code: [2.0, "float.*", 7.0, "float.+"], fitness: 0}
   end
 
   def crossover(i1, i2) do
