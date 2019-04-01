@@ -5,13 +5,11 @@ defmodule Generator do
   end
 
   def point(interpreter) do
-    keys = Map.keys(interpreter.instructions)
-
     r = :rand.uniform()
 
     cond do
-      r < 0.5 -> trunc(:rand.uniform() * 30.0) - 15.0
-      true -> Enum.random(keys)
+      r < 0.1 -> trunc(:rand.uniform() * 20.0) - 10.0
+      true -> Enum.random(Map.keys(interpreter.instructions))
     end
   end
 end
