@@ -1,6 +1,7 @@
 # Haystack
 
-**TODO: Add description**
+A simple [Push](http://faculty.hampshire.edu/lspector/push.html) interpreter and 
+genetic programming environment written in Elixir.
 
 ## Installation
 
