@@ -10,7 +10,8 @@ defmodule GP do
     solutionThreshold: 0.2,
     individualSize: 20,
     populationSize: 1000,
-    generationLimit: 100
+    generationLimit: 100,
+    runners: []
 
   def configure(gp, []) do
     gp
@@ -23,20 +24,31 @@ defmodule GP do
 
   def build(cases, options \\ []) do
     IO.inspect(cases)
-    build_population(configure(%GP{interpreter: Interpreter.build(), cases: cases}, options))
+
+    configure(%GP{interpreter: Interpreter.build(), cases: cases}, options)
+      |> build_population()
+      |> build_runners()
   end
 
   def build_population(gp) do
     %{gp | population: Enum.map(1..gp.populationSize, fn _ -> Individual.build(gp.interpreter, gp.individualSize) end)}
   end
 
-  def evaluate(gp) do
-    %{gp | population: Enum.map(gp.population, fn i -> evaluate(gp, i) end)}
+  def build_runners(gp) do
+    %{gp | runners: Enum.map(1..gp.populationSize, fn _ ->
+      {:ok, pid} = Runner.start_link(%{interpreter: gp.interpreter, cases: gp.cases, pid: self()})
+      pid
+    end)}
   end
 
-  def evaluate(gp, individual) do
-    fitness = Enum.reduce(gp.cases, 0, fn ([input, output], acc) ->
-      i = Interpreter.execute(%{gp.interpreter | fstack: [], estack: [], finput: input}, individual.code)
+  def evaluate(gp) do
+    Enum.map(Enum.zip(gp.runners, gp.population), fn {runner, i} -> Runner.run(runner, i) end)
+    %{gp | population: receive_results(gp.populationSize)}
+  end
+
+  def evaluate(cases, interpreter, individual) do
+    Enum.reduce(cases, 0, fn ([input, output], acc) ->
+      i = Interpreter.execute(%{interpreter | fstack: [], estack: [], finput: input}, individual.code)
 
       result = case i.fstack do
         [ h | _ ] -> h
@@ -45,8 +57,6 @@ defmodule GP do
 
       acc + abs(result - output)
     end)
-
-    %{individual | fitness: fitness}
   end
 
   def tournament(gp) do
@@ -71,6 +81,7 @@ defmodule GP do
   def report(gp) do
     best = hd(Enum.sort(gp.population, &(&1.fitness <= &2.fitness)))
 
+    IO.inspect(DateTime.utc_now())
     IO.puts("Generation: #{gp.generation} - #{Enum.count(gp.population)}")
     IO.puts("Best individual: #{best.fitness} - #{Enum.count(best.code)}")
     IO.inspect(best)
@@ -94,4 +105,16 @@ defmodule GP do
       true -> steps(generation(gp), max - 1)
     end
   end
+
+  defp receive_results(0) do
+    []
+  end
+
+  defp receive_results(n) do
+    receive do
+      {:fitness, individual} -> [individual | receive_results(n-1)]
+      msg -> IO.inspect("Unexpected message: #{msg}")
+    end
+  end
+
 end

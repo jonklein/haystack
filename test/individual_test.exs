@@ -22,7 +22,7 @@ defmodule IndividualTest do
     # IO.puts("OUT")
     # IO.inspect(i3)
 
-    assert Enum.count(i3.code) > 0
+    assert Enum.count(i3.code) == Enum.count(i2.code)
   end
 
   test "it does mutation" do
@@ -36,6 +36,6 @@ defmodule IndividualTest do
     # IO.puts("OUT")
     # IO.inspect(i2)
 
-    assert Enum.count(i2.code) > 0
+    assert Enum.count(i2.code) == Enum.count(i1.code)
   end
 end
